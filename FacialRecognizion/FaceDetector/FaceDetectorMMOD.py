@@ -1,13 +1,16 @@
 import cv2
 import dlib
+from configparser import ConfigParser
+from os import path
 
 
 class FaceDetectorMMOD:
-    def __init__(self):
-        self._cnnFaceDetector = dlib.cnn_face_detection_model_v1("Data/Model/mmod_human_face_detector.dat")
+    def __init__(self, detector):
+        self._cnnFaceDetector = detector
+        self.frame = None
 
-    def detectFaceDlibMMOD(self, frame, inHeight=300, inWidth=0):
-        frameDlibMMOD = frame.copy()
+    def detectFace(self, inHeight=300, inWidth=0):
+        frameDlibMMOD = self.frame.copy()
         frameHeight = frameDlibMMOD.shape[0]
         frameWidth = frameDlibMMOD.shape[1]
         if not inWidth:
@@ -35,4 +38,24 @@ class FaceDetectorMMOD:
             cv2.rectangle(frameDlibMMOD, (cvRect[0], cvRect[1]), (cvRect[2], cvRect[3]), (0, 255, 0),
                           int(round(frameHeight / 150)), 4)
 
+            del cvRect
+
+        # Cleanning The RAM
+        del frameDlibMMOD
+        del frameHeight
+        del frameWidth
+        del inWidth
+        del inHeight
+        del scaleHeight
+        del scaleWidth
+        del frameDlibMMODSmall
+        del faceRects
+        del bboxes
+
         return frameDlibMMOD
+
+    # *===========================*
+    # | cleanning object into RAM |
+    # *===========================*
+    def _cleanning_ram(self):
+        del self._cnnFaceDetector
