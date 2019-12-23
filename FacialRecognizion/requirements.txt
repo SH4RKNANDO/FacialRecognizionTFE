@@ -3,7 +3,7 @@ cv2
 numpy
 requests
 opencv-contrib-python
-tensorflow-gpu==1.12.0
+tensorflow-gpu==1.15.0
 scipy
 keras
 scikit-learn
