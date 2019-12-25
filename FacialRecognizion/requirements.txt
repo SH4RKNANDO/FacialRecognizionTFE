@@ -1,5 +1,4 @@
 dlib
-cv2
 numpy
 requests
 opencv-contrib-python
@@ -12,7 +11,7 @@ matplotlib
 pillow
 h5py
 progressbar2
-pendas
+pd
 tqdm
 tensorboard
 imutils
