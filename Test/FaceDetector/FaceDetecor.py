@@ -22,6 +22,7 @@ class FaceDetector:
             self._configFile = "Data/Model/opencv_face_detector.pbtxt"
             self._net = cv2.dnn.readNetFromTensorflow(self._modelFile, self._configFile)
 
+        # Default (0.5 < _conf_threshold < 1)
         self._conf_threshold = 0.8
 
         # DLIB HoG
@@ -83,7 +84,6 @@ class FaceDetector:
         return frameOpencvDnn
 
     def detectFaceDlibHog(self, frame, inHeight=300, inWidth=0):
-
         frameDlibHog = frame.copy()
         frameHeight = frameDlibHog.shape[0]
         frameWidth = frameDlibHog.shape[1]
@@ -109,7 +109,6 @@ class FaceDetector:
         return frameDlibHog
 
     def detectFaceDlibMMOD(self, frame, inHeight=300, inWidth=0):
-
         frameDlibMMOD = frame.copy()
         frameHeight = frameDlibMMOD.shape[0]
         frameWidth = frameDlibMMOD.shape[1]
@@ -136,4 +135,3 @@ class FaceDetector:
             cv2.rectangle(frameDlibMMOD, (cvRect[0], cvRect[1]), (cvRect[2], cvRect[3]), (0, 255, 0),
                           int(round(frameHeight / 150)), 4)
         return frameDlibMMOD
-
