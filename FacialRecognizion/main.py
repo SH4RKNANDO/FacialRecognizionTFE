@@ -127,6 +127,7 @@ def create_face_detector():
 
 
 if __name__ == "__main__":
+
     ap = argparse.ArgumentParser()
     ap.add_argument('-p', '--eventpath', help='Path of Events Directory', default='IMAGE_TO_DETECT')
     args, u = ap.parse_known_args()

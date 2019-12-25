@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PACKAGES="python-virtualenvwrapper python-virtualenv python-numpy opencv opencv-samples"
+PACKAGES="python-virtualenvwrapper python-virtualenv python-numpy opencv opencv-samples cmake"
 
 pacman -Syy
 
