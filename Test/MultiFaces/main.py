@@ -23,7 +23,7 @@ if __name__ == "__main__":
     if len(imgPath) > 1:
 
         for img in imgPath:
-            print(img)
+            # print(img)
 
             img_read = cv2.imread(img)
             vframe = []

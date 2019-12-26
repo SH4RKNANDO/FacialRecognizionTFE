@@ -1,6 +1,7 @@
 from __future__ import division
 import cv2
 import dlib
+import time
 
 
 class FaceDetector:
@@ -43,11 +44,13 @@ class FaceDetector:
 
         frameOpenCVHaarSmall = cv2.resize(frameOpenCVHaar, (inWidth, inHeight))
         frameGray = cv2.cvtColor(frameOpenCVHaarSmall, cv2.COLOR_BGR2GRAY)
-
+        t1 = time.time()
         faces = self._faceCascade.detectMultiScale(frameGray)
+        t2 = time.time()
+        t_total = t2 - t1
         bboxes = []
-        cv2.putText(frameOpenCVHaar, "OpenCV HaarCascade", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3,
-                    cv2.LINE_AA)
+        cv2.putText(frameOpenCVHaar, "OpenCV HaarCascade, Time : " + str(t_total), (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                    1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
         for (x, y, w, h) in faces:
             x1 = x
@@ -70,9 +73,12 @@ class FaceDetector:
         blob = cv2.dnn.blobFromImage(frameOpencvDnn, 1.0, (300, 300), [104, 117, 123], False, False)
 
         self._net.setInput(blob)
+        t1 = time.time()
         detections = self._net.forward()
+        t2 = time.time()
+        t_total = t2 - t1
         bboxes = []
-        cv2.putText(frameOpencvDnn, "OpenCV DNN", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
+        cv2.putText(frameOpencvDnn, "OpenCV DNN, Time : " + str(t_total), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
         for i in range(detections.shape[2]):
             confidence = detections[0, 0, i, 2]
@@ -87,7 +93,6 @@ class FaceDetector:
         return frameOpencvDnn
 
     def detectFaceDlibHog(self, frame, inHeight=300, inWidth=0):
-
         frameDlibHog = frame.copy()
         frameHeight = frameDlibHog.shape[0]
         frameWidth = frameDlibHog.shape[1]
@@ -98,12 +103,18 @@ class FaceDetector:
         scaleWidth = frameWidth / inWidth
 
         frameDlibHogSmall = cv2.resize(frameDlibHog, (inWidth, inHeight))
-
         frameDlibHogSmall = cv2.cvtColor(frameDlibHogSmall, cv2.COLOR_BGR2RGB)
+
+        t1 = time.time()
         faceRects = self._hogFaceDetector(frameDlibHogSmall, 0)
+        t2 = time.time()
+        t_total = t2 - t1
+
         print(frameWidth, frameHeight, inWidth, inHeight)
         bboxes = []
-        cv2.putText(frameDlibHog, "OpenCV HoG", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
+
+        cv2.putText(frameDlibHog, "OpenCV HoG, Time : " + str(t_total), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
+
         for faceRect in faceRects:
             cvRect = [int(faceRect.left() * scaleWidth), int(faceRect.top() * scaleHeight),
                       int(faceRect.right() * scaleWidth), int(faceRect.bottom() * scaleHeight)]
@@ -113,7 +124,6 @@ class FaceDetector:
         return frameDlibHog
 
     def detectFaceDlibMMOD(self, frame, inHeight=300, inWidth=0):
-
         frameDlibMMOD = frame.copy()
         frameHeight = frameDlibMMOD.shape[0]
         frameWidth = frameDlibMMOD.shape[1]
@@ -122,16 +132,18 @@ class FaceDetector:
 
         scaleHeight = frameHeight / inHeight
         scaleWidth = frameWidth / inWidth
-
         frameDlibMMODSmall = cv2.resize(frameDlibMMOD, (inWidth, inHeight))
-
         frameDlibMMODSmall = cv2.cvtColor(frameDlibMMODSmall, cv2.COLOR_BGR2RGB)
+
+        t1 = time.time()
         faceRects = self._dnnFaceDetector(frameDlibMMODSmall, 0)
+        t2 = time.time()
+        t_total = t2 - t1
 
         print(frameWidth, frameHeight, inWidth, inHeight)
         bboxes = []
 
-        cv2.putText(frameDlibMMOD, "OpenCV MMOD", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
+        cv2.putText(frameDlibMMOD, "OpenCV MMOD, Time : " + str(t_total), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
         for faceRect in faceRects:
             cvRect = [int(faceRect.rect.left() * scaleWidth), int(faceRect.rect.top() * scaleHeight),
