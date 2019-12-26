@@ -49,7 +49,7 @@ class FaceDetector:
         t2 = time.time()
         t_total = float("{0:.2f}".format(t2 - t1))
         bboxes = []
-        cv2.putText(frameOpenCVHaar, "OpenCV HaarCascade, Time : " + str(t_total) + " s", (10, 50),
+        cv2.putText(frameOpenCVHaar, "OpenCV HaarCascade, Time : " + str(t_total) + " second", (10, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
         for (x, y, w, h) in faces:
@@ -78,7 +78,7 @@ class FaceDetector:
         t2 = time.time()
         t_total = float("{0:.2f}".format(t2 - t1))
         bboxes = []
-        cv2.putText(frameOpencvDnn, "OpenCV DNN, Time : " + str(t_total) + " s", (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+        cv2.putText(frameOpencvDnn, "OpenCV DNN, Time : " + str(t_total) + " second", (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
                     1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
         for i in range(detections.shape[2]):
@@ -114,7 +114,7 @@ class FaceDetector:
         print(frameWidth, frameHeight, inWidth, inHeight)
         bboxes = []
 
-        cv2.putText(frameDlibHog, "OpenCV HoG, Time : " + str(t_total) + " s", (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+        cv2.putText(frameDlibHog, "OpenCV HoG, Time : " + str(t_total) + " second", (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
                     1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
         for faceRect in faceRects:
@@ -145,7 +145,7 @@ class FaceDetector:
         print(frameWidth, frameHeight, inWidth, inHeight)
         bboxes = []
 
-        cv2.putText(frameDlibMMOD, "OpenCV MMOD, Time : " + str(t_total) + " s", (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+        cv2.putText(frameDlibMMOD, "OpenCV MMOD, Time : " + str(t_total) + " second", (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
                     1.4, (0, 0, 255), 3, cv2.LINE_AA)
 
         for faceRect in faceRects:
