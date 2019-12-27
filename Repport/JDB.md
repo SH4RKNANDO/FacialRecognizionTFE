@@ -21,7 +21,7 @@
 - Réalisation du plan de nommage
 - Réalisation de la topologie Réseaux
 
-## Lundi 23 Octobre : 
+## Lundi 23 Octobre :
 
 - Installation de l’hyperviseur sur le server Vmware ESXI
 - Upload des ISO sur le server
@@ -37,14 +37,24 @@
 
 - Création du journal de bord
     - création du JDB.md
-- Création du dépot github 
+- Création du dépot github
     - README.md
 - Restructuration du projet
     - gestion des librairies (virtualenv avec un wrapper)
-- Création du fichier annexe 
+- Création du fichier annexe
     - environement virtuel python
 
 ## Travail sur le dépôts (22/12/2019)
 - requirements.txt
     - add new all library
     - Create the virtual Environement (dev environment)
+
+## Travail sur le dépôts (26/12/2019)
+- Face Comparaison
+  - Ajout dans le depot
+  - Benchmark
+
+## Travail sur le dépôts (27/12/2019)
+- Object Detector
+  - Benchmark
+  - Optimisation
