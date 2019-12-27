@@ -8,6 +8,5 @@ for p in $PACKAGES
 do
   echo -e "\nInstall package : $p\n"
   sudo pacman -S $p
-
 done
 
