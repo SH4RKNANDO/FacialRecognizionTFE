@@ -9,7 +9,7 @@ from __future__ import division
 from __future__ import print_function
 from scipy.special import expit
 from FaceDetector import util
-from FaceDetector.IFaceDetector import IFaceDetector
+from FaceDetector import tiny_face_model
 
 import pickle
 import time
@@ -34,14 +34,14 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorHoG
 # ===========================================================================
-class FaceDetectorTINY(IFaceDetector):
-    def __init__(self, MAX_INPUT_DIM, prob_thresh, nms_thres, lw, model):
-        IFaceDetector.__init__(self)
-        self._MAX_INPUT_DIM = MAX_INPUT_DIM
+class FaceDetectorTINY:
+    def __init__(self, prob_thresh, nms_thres, lw, model):
+        self._MAX_INPUT_DIM = 5000.0
         self._prob_thresh = float(prob_thresh)
         self._nms_tresh = float(nms_thres)
         self._lw = int(lw)
-        self._model = model
+        self._model_path = model
+        self._model = tiny_face_model.Model(model)
 
     # *=======================*
     # |  Detect Face Process  |
@@ -87,7 +87,7 @@ class FaceDetectorTINY(IFaceDetector):
         score_final = self._model.tiny_face(x)
 
         # Load an average image and clusters(reference boxes of templates).
-        with open("Data/Model/hr_res101.weight", "rb") as f:
+        with open( self._model_path, "rb") as f:
             _, mat_params_dict = pickle.load(f)
 
         average_image = self._model.get_data_by_key("average_image")

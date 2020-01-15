@@ -7,7 +7,6 @@
 import cv2
 import dlib
 from configparser import ConfigParser
-from FaceDetector.IFaceDetector import IFaceDetector
 from os import path
 
 # ===========================================================================
@@ -28,7 +27,6 @@ __status__ = "Production"
 # ===========================================================================
 class FaceDetectorMMOD(IFaceDetector):
     def __init__(self, detector):
-        IFaceDetector.__init__(self)
         self._cnnFaceDetector = detector
 
     # *=======================*

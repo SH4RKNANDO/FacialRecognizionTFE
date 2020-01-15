@@ -6,7 +6,6 @@
 # ===========================================================================
 import cv2
 import dlib
-from FaceDetector.IFaceDetector import IFaceDetector
 
 
 # ===========================================================================
@@ -27,7 +26,6 @@ __status__ = "Production"
 # ===========================================================================
 class FaceDetectorHoG(IFaceDetector):
     def __init__(self):
-        IFaceDetector.__init__(self)
         self._hogFaceDetector = dlib.get_frontal_face_detector()
 
     # *=======================*

@@ -5,7 +5,6 @@
 #           Definition of Import
 # ===========================================================================
 import cv2
-from FaceDetector.IFaceDetector import IFaceDetector
 from configparser import ConfigParser
 from os import path
 
@@ -27,7 +26,6 @@ __status__ = "Production"
 # ===========================================================================
 class FaceDetectorHaar(IFaceDetector):
     def __init__(self, max_multiscale, min_multiscale, face_cascade):
-        IFaceDetector.__init__(self)
         self._min_multiscale = min_multiscale
         self._max_multiscale = max_multiscale
         self._faceCascade = face_cascade

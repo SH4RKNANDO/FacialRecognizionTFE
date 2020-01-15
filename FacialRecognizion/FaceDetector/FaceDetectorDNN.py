@@ -5,7 +5,6 @@
 #           Definition of Import
 # ===========================================================================
 from __future__ import division
-from FaceDetector.IFaceDetector import IFaceDetector
 from configparser import ConfigParser
 from os import path
 import cv2
@@ -28,9 +27,6 @@ __status__ = "Production"
 # ===========================================================================
 class FaceDetectorDNN(IFaceDetector):
     def __init__(self, threshold, model, model_path, model_config):
-
-        IFaceDetector.__init__(self)
-
         if model == "CAFFE":
             self._net = cv2.dnn.readNetFromCaffe(model_config, model_path)
         else:
