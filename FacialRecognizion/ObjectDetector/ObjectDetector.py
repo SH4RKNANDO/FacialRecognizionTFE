@@ -63,7 +63,7 @@ class ObjectDetector:
                     classIDs.append(classID)
 
         idxs = cv2.dnn.NMSBoxes(boxes, confidences, self._confidence, self._threshold)
-        result = " "
+        result = ""
 
         # ensure at least one detection exists
         if len(idxs) > 0:
