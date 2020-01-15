@@ -24,7 +24,7 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorHaar
 # ===========================================================================
-class FaceDetectorHaar(IFaceDetector):
+class FaceDetectorHaar:
     def __init__(self, max_multiscale, min_multiscale, face_cascade):
         self._min_multiscale = min_multiscale
         self._max_multiscale = max_multiscale

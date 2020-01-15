@@ -25,7 +25,7 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorDNN
 # ===========================================================================
-class FaceDetectorDNN(IFaceDetector):
+class FaceDetectorDNN:
     def __init__(self, threshold, model, model_path, model_config):
         if model == "CAFFE":
             self._net = cv2.dnn.readNetFromCaffe(model_config, model_path)

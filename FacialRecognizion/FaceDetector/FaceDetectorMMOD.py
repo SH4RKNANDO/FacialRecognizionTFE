@@ -25,7 +25,7 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorHoG
 # ===========================================================================
-class FaceDetectorMMOD(IFaceDetector):
+class FaceDetectorMMOD:
     def __init__(self, detector):
         self._cnnFaceDetector = detector
 

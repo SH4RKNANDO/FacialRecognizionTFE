@@ -24,7 +24,7 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorHoG
 # ===========================================================================
-class FaceDetectorHoG(IFaceDetector):
+class FaceDetectorHoG:
     def __init__(self):
         self._hogFaceDetector = dlib.get_frontal_face_detector()
 
