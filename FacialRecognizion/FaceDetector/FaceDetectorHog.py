@@ -6,6 +6,8 @@
 # ===========================================================================
 import cv2
 import dlib
+from FaceDetector.IFaceDetector import IFaceDetector
+
 
 # ===========================================================================
 #           Infos developer
@@ -23,16 +25,16 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorHoG
 # ===========================================================================
-class FaceDetectorHoG:
+class FaceDetectorHoG(IFaceDetector):
     def __init__(self):
+        IFaceDetector.__init__(self)
         self._hogFaceDetector = dlib.get_frontal_face_detector()
-        self.frame = None
 
     # *=======================*
     # |  Detect Face Process  |
     # *=======================*
-    def detectFace(self, inHeight=300, inWidth=0):
-        frameDlibHog = self.frame.copy()
+    def detectFace(self, frame, inHeight=300, inWidth=0):
+        frameDlibHog = frame.copy()
         frameHeight = frameDlibHog.shape[0]
         frameWidth = frameDlibHog.shape[1]
         if not inWidth:

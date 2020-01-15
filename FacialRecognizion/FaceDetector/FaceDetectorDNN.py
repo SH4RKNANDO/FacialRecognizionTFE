@@ -5,6 +5,7 @@
 #           Definition of Import
 # ===========================================================================
 from __future__ import division
+from FaceDetector.IFaceDetector import IFaceDetector
 from configparser import ConfigParser
 from os import path
 import cv2
@@ -25,8 +26,10 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorDNN
 # ===========================================================================
-class FaceDetectorDNN:
+class FaceDetectorDNN(IFaceDetector):
     def __init__(self, threshold, model, model_path, model_config):
+
+        IFaceDetector.__init__(self)
 
         if model == "CAFFE":
             self._net = cv2.dnn.readNetFromCaffe(model_config, model_path)
@@ -34,12 +37,11 @@ class FaceDetectorDNN:
             self._net = cv2.dnn.readNetFromTensorflow(model_path, model_config)
 
         self._conf_threshold = threshold
-        self.frame = None
 
     # *=======================*
     # |  Detect Face Process  |
     # *=======================*
-    def detectFace(self):
+    def detectFace(self, frame):
         frameOpencvDnn = self.frame.copy()
         frameHeight = frameOpencvDnn.shape[0]
         frameWidth = frameOpencvDnn.shape[1]

@@ -9,6 +9,7 @@ from __future__ import division
 from __future__ import print_function
 from scipy.special import expit
 from FaceDetector import util
+from FaceDetector.IFaceDetector import IFaceDetector
 
 import pickle
 import time
@@ -33,8 +34,9 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorHoG
 # ===========================================================================
-class FaceDetectorTINY:
+class FaceDetectorTINY(IFaceDetector):
     def __init__(self, MAX_INPUT_DIM, prob_thresh, nms_thres, lw, model):
+        IFaceDetector.__init__(self)
         self._MAX_INPUT_DIM = MAX_INPUT_DIM
         self._prob_thresh = float(prob_thresh)
         self._nms_tresh = float(nms_thres)
@@ -44,8 +46,10 @@ class FaceDetectorTINY:
     # *=======================*
     # |  Detect Face Process  |
     # *=======================*
-    def detectFace(self):
-        e = 0
+    def detectFace(self, frame):
+        with tf.Graph().as_default():
+            temp = self._detectTinyFace(frame)
+        return temp
 
     # ============================== < TinyFace Helpers > =======================================
 
@@ -73,6 +77,8 @@ class FaceDetectorTINY:
             del rect_color
             del _lw
             del _r
+
+    # ============================== < FaceDetector  > =======================================
 
     def _detectTinyFace(self, frame):
         x = tf.compat.v1.placeholder(tf.float32, [1, None, None, 3])
@@ -189,10 +195,3 @@ class FaceDetectorTINY:
                             1, (0, 0, 255), 3, cv2.LINE_AA)
 
             return raw_img
-
-    # ============================== < FaceDetector  > =======================================
-
-    def detectTinyFace(self, frame):
-        with tf.Graph().as_default():
-            temp = self._detectTinyFace(frame)
-        return temp

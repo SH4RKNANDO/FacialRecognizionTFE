@@ -7,6 +7,7 @@
 import cv2
 import dlib
 from configparser import ConfigParser
+from FaceDetector.IFaceDetector import IFaceDetector
 from os import path
 
 # ===========================================================================
@@ -25,16 +26,16 @@ __status__ = "Production"
 # ===========================================================================
 #         Definition of Class FaceDetectorHoG
 # ===========================================================================
-class FaceDetectorMMOD:
+class FaceDetectorMMOD(IFaceDetector):
     def __init__(self, detector):
+        IFaceDetector.__init__(self)
         self._cnnFaceDetector = detector
-        self.frame = None
 
     # *=======================*
     # |  Detect Face Process  |
     # *=======================*
-    def detectFace(self, inHeight=300, inWidth=0):
-        frameDlibMMOD = self.frame.copy()
+    def detectFace(self, frame, inHeight=300, inWidth=0):
+        frameDlibMMOD = frame.copy()
         frameHeight = frameDlibMMOD.shape[0]
         frameWidth = frameDlibMMOD.shape[1]
         if not inWidth:
