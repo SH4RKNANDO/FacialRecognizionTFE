@@ -8,7 +8,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from scipy.special import expit
-from FaceDetector import tiny_face_model
 from FaceDetector import util
 
 import pickle
@@ -35,12 +34,12 @@ __status__ = "Production"
 #         Definition of Class FaceDetectorHoG
 # ===========================================================================
 class FaceDetectorTINY:
-    def __init__(self, MAX_INPUT_DIM, prob_thresh, nms_thres, lw, model_path):
-        self._MAX_INPUT_DIM = 5000.0
-        self._prob_thresh = float(0.5)
-        self._nms_tresh = float(0.1)
-        self._lw = int(3)
-        self._model = tiny_face_model.Model('Data/Model/hr_res101.weight')
+    def __init__(self, MAX_INPUT_DIM, prob_thresh, nms_thres, lw, model):
+        self._MAX_INPUT_DIM = MAX_INPUT_DIM
+        self._prob_thresh = float(prob_thresh)
+        self._nms_tresh = float(nms_thres)
+        self._lw = int(lw)
+        self._model = model
 
     # *=======================*
     # |  Detect Face Process  |
@@ -51,7 +50,6 @@ class FaceDetectorTINY:
     # ============================== < TinyFace Helpers > =======================================
 
     def _overlay_bounding_boxes(self, raw_img, refined_bboxes, lw):
-
         # Overlay bounding boxes on an image with the color based on the confidence.
         for r in refined_bboxes:
             _score = expit(r[4])

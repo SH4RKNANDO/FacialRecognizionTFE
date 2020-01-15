@@ -1,15 +1,39 @@
+# -*- coding: utf-8 -*-
+
+# *-----------------------*
+# | Import faces Detector |
+# *-----------------------*
+from FaceDetector.FaceDetectorDNN import FaceDetectorDNN
+from FaceDetector.FaceDetectorHaar import FaceDetectorHaar
+from FaceDetector.FaceDetectorHog import FaceDetectorHoG
+from FaceDetector.FaceDetectorMMOD import FaceDetectorMMOD
+from FaceDetector.FaceDetectorTINY import FaceDetectorTINY
+from FaceDetector import tiny_face_model
+# from FaceDetector.FaceDetector import FaceDetector
+
+# *------------------------*
+# | Import Object Detector |
+# *------------------------*
+from ObjectDetector.ObjectDetector import ObjectDetector
+from ObjectDetector.ObjectDetector_old import ObjectDetector
+
+# *------------------------*
+# | Import Python Library  |
+# *------------------------*
+from configparser import ConfigParser
 from imutils import paths
 from os import path
-from ObjectDetector.ObjectDetector_old import ObjectDetector
-from ObjectDetector.ObjectDetector import ObjectDetector
-from FaceDetector.FaceDetector import FaceDetector
+
 import argparse
 import re
-from configparser import ConfigParser
 import cv2
 import time
 import numpy as np
 import os
+import dlib
+
+
+# =========================================== < HELPERS FUNCTION > ====================================================
 
 
 # =============================*
@@ -20,6 +44,8 @@ def _convert_boolean(string):
         return True
     else:
         return False
+
+# =========================================== < DETECTOR FUNCTION > ===================================================
 
 
 # ==========================================*
@@ -62,64 +88,86 @@ def create_object_detector():
     return obj
 
 
-# ========================================*
+# *=======================================*
 # | Create Face Detector From config.ini  |
 # *=======================================*
-# def create_face_detector():
-#     config = ConfigParser()
-#     config.read('Data/Config/detector.ini')
-#     config = config['General']
-#     face_detector = None
-#
-#     if config['face_detector_process'] == "DNN":
-#         config = ConfigParser()
-#         config.read('Data/Config/detector.ini')
-#         config = config['FaceDetectorDNN']
-#
-#         if path.isfile(config['modelFile']) and path.isfile(config['configFile']):
-#             face_detector = FaceDetectorDNN(float(config['conf_threshold']),
-#                                             config['process_model'],
-#                                             config['modelFile'],
-#                                             config['configFile'])
-#         else:
-#             if not path.isfile(config['modelFile']):
-#                 raise Exception("[ERROR] No such file or Directory : {0}".format(config['modelFile']))
-#             elif not path.isfile(config['configFile']):
-#                 raise Exception("[ERROR] No such file or Directory : {0}".format(config['configFile']))
-#
-#     elif config['face_detector_process'] == "Haar":
-#         config = ConfigParser()
-#         config.read('Data/Config/detector.ini')
-#         config = config['FaceDetectorHaar']
-#
-#         if path.isfile(config['haarcascade_frontalface_default']):
-#
-#             face_detector = FaceDetectorHaar(int(config['max_multiscale']),
-#                                              float(config['min_multiscale']),
-#                                              cv2.CascadeClassifier(config['haarcascade_frontalface_default']))
-#         else:
-#             raise Exception("[ERROR] HaarCasecade Model No such file or Directory : ".format(config['haarcascade_frontalface_default']))
-#
-#     elif config['face_detector_process'] == "MMOD":
-#         config = ConfigParser()
-#         config.read('Data/Config/detector.ini')
-#         config = config['FaceDetectorMMOD']
-#
-#         if path.isfile(config['cnn_face_detection_model_v1']):
-#             face_detector = FaceDetectorMMOD(dlib.cnn_face_detection_model_v1(config['cnn_face_detection_model_v1']))
-#         else:
-#             raise Exception("[ERROR] MMOD Model no such file or directory : ".format(config['cnn_face_detection_model_v1']))
-#
-#     elif config['face_detector_process'] == "HoG":
-#         face_detector = FaceDetectorHoG()
-#
-#     else:
-#         raise Exception("ERROR No FaceDetector Selected into detector.ini")
-#
-#     del config
-#     return face_detector
-#
+def create_face_detector():
+    config = ConfigParser()
+    config.read('Data/Config/detector.ini')
+    config = config['General']
+    face_detector = None
 
+    # IF FACEDETECTOR == DNN
+    if config['face_detector_process'] == "DNN":
+        config = ConfigParser()
+        config.read('Data/Config/detector.ini')
+        config = config['FaceDetectorDNN']
+
+        if path.isfile(config['modelFile']) and path.isfile(config['configFile']):
+            face_detector = FaceDetectorDNN(float(config['conf_threshold']),
+                                            config['process_model'],
+                                            config['modelFile'],
+                                            config['configFile'])
+        else:
+            if not path.isfile(config['modelFile']):
+                raise Exception("[ERROR] No such file or Directory : {0}".format(config['modelFile']))
+            elif not path.isfile(config['configFile']):
+                raise Exception("[ERROR] No such file or Directory : {0}".format(config['configFile']))
+
+    # ELIF FACEDETECTOR == HaarCascade
+    elif config['face_detector_process'] == "Haar":
+        config = ConfigParser()
+        config.read('Data/Config/detector.ini')
+        config = config['FaceDetectorHaar']
+
+        if path.isfile(config['haarcascade_frontalface_default']):
+
+            face_detector = FaceDetectorHaar(int(config['max_multiscale']),
+                                             float(config['min_multiscale']),
+                                             cv2.CascadeClassifier(config['haarcascade_frontalface_default']))
+        else:
+            raise Exception("[ERROR] HaarCasecade Model No such file or Directory : ".format(config['haarcascade_frontalface_default']))
+
+    # ELIF FACEDETECTOR == MMOD
+    elif config['face_detector_process'] == "MMOD":
+        config = ConfigParser()
+        config.read('Data/Config/detector.ini')
+        config = config['FaceDetectorMMOD']
+
+        if path.isfile(config['cnn_face_detection_model_v1']):
+            face_detector = FaceDetectorMMOD(dlib.cnn_face_detection_model_v1(config['cnn_face_detection_model_v1']))
+        else:
+            raise Exception("[ERROR] MMOD Model no such file or directory : ".format(config['cnn_face_detection_model_v1']))
+
+    # ELIF FACEDETECTOR == HoG
+    elif config['face_detector_process'] == "HoG":
+        face_detector = FaceDetectorHoG()
+
+    # ELIF FACEDETECTOR == Tiny
+    elif config['face_detector_process'] == "Tiny":
+        config = ConfigParser()
+        config.read('Data/Config/detector.ini')
+        config = config['FaceDetectorTiny']
+
+        if path.isfile(config['Tiny_Face_detection_model']):
+            face_detector = FaceDetectorTINY(MAX_INPUT_DIM=config['MAX_INPUT_DIM'],
+                                             prob_thresh=float(config['prob_thresh']),
+                                             nms_thres=float(config['nms_tresh']),
+                                             lw=int(config['lw']),
+                                             model=tiny_face_model.Model(config['Tiny_Face_detection_model']))
+        else:
+            raise Exception(
+                "[ERROR] MMOD Model no such file or directory : ".format(config['Tiny_Face_detection_model']))
+
+    # ELIF FACEDETECTOR == ERROR
+    else:
+        raise Exception("ERROR No FaceDetector Selected into detector.ini")
+
+    del config
+    return face_detector
+
+
+# ============================================= < MAIN FUNCTION > =====================================================
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -127,6 +175,9 @@ if __name__ == "__main__":
     args, u = ap.parse_known_args()
     args = vars(args)
 
+    # *=============================*
+    # |  Read the ini config file   |
+    # *=============================*
     config = ConfigParser()
     config.read('Data/Config/detector.ini')
     config = config['General']
@@ -134,8 +185,13 @@ if __name__ == "__main__":
     if path.isdir(args['eventpath']):
         images = list(paths.list_images(args['eventpath']))
         cpt = 0
+
+        # *=============================*
+        # | Create Face/object detector |
+        # *=============================*
         object_detector = create_object_detector()
         face_detector = FaceDetector()
+
         if len(images) > 1:
             for image in images:
                 start = time.time()
@@ -172,4 +228,4 @@ if __name__ == "__main__":
 
                 print("Processing Time {0} Seconds".format(round(time.time()-start, 2)))
         else:
-            print("No Detect Images")
+            print("No Images Detected")
