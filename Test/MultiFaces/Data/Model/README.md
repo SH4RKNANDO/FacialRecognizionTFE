@@ -1,5 +1,5 @@
 # Download the model 
 
-Download the model and extract HERE
+Download the model from my GoogleDrive and extract HERE
 
-LINK : 
+LINK : https://drive.google.com/open?id=1qX_8ROh4wO_D257eySLec_GVwy_jFn2v
