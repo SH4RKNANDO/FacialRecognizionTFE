@@ -1,30 +1,8 @@
-# !/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-# ===========================================================================
-#           Definition of Import
-# ===========================================================================
 from __future__ import division
 import cv2
 import dlib
 
 
-# ===========================================================================
-#           Infos developer
-# ===========================================================================
-__author__ = "Jordan BERTIEAUX"
-__copyright__ = "Copyright 2020, Facial Recognition"
-__credits__ = ["Jordan BERTIEAUX"]
-__license__ = "GPL"
-__version__ = "1.0"
-__maintainer__ = "Jordan BERTIEAUX"
-__email__ = "jordan.bertieaux@std.heh.be"
-__status__ = "Production"
-
-
-# ===========================================================================
-#         Definition of Class FaceDetector
-# ===========================================================================
 class FaceDetector:
     def __init__(self):
         # OpenCV HAAR
