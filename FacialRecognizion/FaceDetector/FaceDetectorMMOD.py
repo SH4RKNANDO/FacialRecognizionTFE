@@ -1,14 +1,38 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# ===========================================================================
+#           Definition of Import
+# ===========================================================================
 import cv2
 import dlib
 from configparser import ConfigParser
 from os import path
 
+# ===========================================================================
+#           Infos developer
+# ===========================================================================
+__author__ = "Jordan BERTIEAUX"
+__copyright__ = "Copyright 2020, Facial Recognition"
+__credits__ = ["Jordan BERTIEAUX"]
+__license__ = "GPL"
+__version__ = "1.0"
+__maintainer__ = "Jordan BERTIEAUX"
+__email__ = "jordan.bertieaux@std.heh.be"
+__status__ = "Production"
 
+
+# ===========================================================================
+#         Definition of Class FaceDetectorHoG
+# ===========================================================================
 class FaceDetectorMMOD:
     def __init__(self, detector):
         self._cnnFaceDetector = detector
         self.frame = None
 
+    # *=======================*
+    # |  Detect Face Process  |
+    # *=======================*
     def detectFace(self, inHeight=300, inWidth=0):
         frameDlibMMOD = self.frame.copy()
         frameHeight = frameDlibMMOD.shape[0]

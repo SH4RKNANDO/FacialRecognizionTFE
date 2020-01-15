@@ -1,9 +1,30 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# ===========================================================================
+#           Definition of Import
+# ===========================================================================
 from __future__ import division
-import cv2
 from configparser import ConfigParser
 from os import path
+import cv2
+
+# ===========================================================================
+#           Infos developer
+# ===========================================================================
+__author__ = "Jordan BERTIEAUX"
+__copyright__ = "Copyright 2020, Facial Recognition"
+__credits__ = ["Jordan BERTIEAUX"]
+__license__ = "GPL"
+__version__ = "1.0"
+__maintainer__ = "Jordan BERTIEAUX"
+__email__ = "jordan.bertieaux@std.heh.be"
+__status__ = "Production"
 
 
+# ===========================================================================
+#         Definition of Class FaceDetectorDNN
+# ===========================================================================
 class FaceDetectorDNN:
     def __init__(self, threshold, model, model_path, model_config):
 
@@ -39,8 +60,8 @@ class FaceDetectorDNN:
                 bboxes.append([x1, y1, x2, y2])
                 cv2.rectangle(frameOpencvDnn, (x1, y1), (x2, y2), (0, 255, 0), int(round(frameHeight / 150)), 8)
 
-        cv2.imshow("DEBUG", frameOpencvDnn)
-        cv2.waitKey(0)
+        # cv2.imshow("DEBUG", frameOpencvDnn)
+        # cv2.waitKey(0)
 
         del frameHeight
         del frameWidth

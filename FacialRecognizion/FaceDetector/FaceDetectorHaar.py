@@ -1,8 +1,29 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# ===========================================================================
+#           Definition of Import
+# ===========================================================================
 import cv2
 from configparser import ConfigParser
 from os import path
 
+# ===========================================================================
+#           Infos developer
+# ===========================================================================
+__author__ = "Jordan BERTIEAUX"
+__copyright__ = "Copyright 2020, Facial Recognition"
+__credits__ = ["Jordan BERTIEAUX"]
+__license__ = "GPL"
+__version__ = "1.0"
+__maintainer__ = "Jordan BERTIEAUX"
+__email__ = "jordan.bertieaux@std.heh.be"
+__status__ = "Production"
 
+
+# ===========================================================================
+#         Definition of Class FaceDetectorHaar
+# ===========================================================================
 class FaceDetectorHaar:
     def __init__(self, max_multiscale, min_multiscale, face_cascade):
         self._min_multiscale = min_multiscale
