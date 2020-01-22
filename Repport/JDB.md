@@ -58,3 +58,26 @@
 - Object Detector
   - Benchmark
   - Optimisation
+
+## Travail sur la documentation + Rapport (4/1 => 10/1)
+
+## Installation GPU (Graphical Passtrought) (11/1 => 12/1)
+
+## Recherche d'un Model TinyFaces (13/1 => 15/1)
+
+## Implémentation RecoFaciale avec TinyFaces (16/1 => 18/1)
+    - Implémentation du model
+    - Implémentation reconnaissance Faciale
+
+## Performing (19/1 => 22/1)
+    - Algorithme avec Détecteur d'object => SPEED
+    - Algorithme avec Détecteur de face
+    - Algorithme avec Reconnaissance Faciale
+    - Implémentation dans le server d'events
+    
+## TODO    
+    - Création d'une VM ZoneMinder (avec Events + RecoFaciale)
+    - Implémentation multifaces (Pas fini)
+    - Algorithme avec Reconnaissance de plaque (Pas fini)
+    - Création des requirements Python
+    
