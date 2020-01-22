@@ -5,8 +5,7 @@
 #           Definition of Import
 # ===========================================================================
 import cv2
-from configparser import ConfigParser
-from os import path
+
 
 # ===========================================================================
 #           Infos developer

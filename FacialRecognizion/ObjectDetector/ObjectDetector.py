@@ -12,21 +12,20 @@ class ObjectDetector:
         self._show_percent = showPercent
         self._yolo_override_ZM = override_zm
         self._data_loaded = data_loaded
-        self.image_path = ""
 
     # ==================================*
     # |   Run the Detector Algorithm    |
     # *=================================*
-    def run(self):
+    def run(self, img):
         # print("[INFO] Try to Detect Now...")
-        result = self._detector(self._data_loaded[0], self._data_loaded[1], self._data_loaded[2])
+        result = self._detector(self._data_loaded[0], self._data_loaded[1], self._data_loaded[2], img)
         return result
 
     # *==========================*
     # |   Detector Algorithm     |
     # *==========================*
-    def _detector(self, labels, colors, net):
-        image = cv2.imread(self.image_path)
+    def _detector(self, labels, colors, net, img):
+        image = cv2.imread(img)
         (H, W) = image.shape[:2]
 
         # determine only the *output* layer names that we need from YOLO
@@ -90,13 +89,13 @@ class ObjectDetector:
 
                     cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-            if not result.find(self._detect_pattern):
-                os.remove(self.image_path)
+            # if not result.find(self._detect_pattern):
+            #     os.remove(img)
 
         if self._yolo_override_ZM:
             # cv2.imshow("DEBUG", image)
             # cv2.waitKey(0)
-            cv2.imwrite(self.image_path, image)
+            cv2.imwrite(img, image)
 
         # cleanning the RAM
         del image
