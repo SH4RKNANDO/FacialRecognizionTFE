@@ -16,90 +16,70 @@ __status__ = "Production"
 # ===========================================================================
 from Helper.Colors import Colors
 from Helper.Serializer import Serializer
-from FaceDetector.FaceDetector import FaceDetector
-from Helper.PATH import PATH
-from tqdm import tqdm
-
 import glob
-import pandas as pd
 import cv2
 import time
 import os
+import re
 
 
 # ===========================================================================
 #         Definition of class ExtractFaces
 # ===========================================================================
 class ExtractFaces:
-    def __init__(self):
-        self._color = Colors()
-        self._serializer = Serializer()
 
-    # ===========================================================================
-    #         Function of main
-    # ===========================================================================
-    def run(self):
-        self._color.printing("info", "[LOADING] Quantifying faces...")
+    # *=================================*
+    # |     Function of main            |
+    # *=================================*
+    def run(self, fd, obj, pickle_data):
+        # Get list of files in Folder
+        data = Serializer.format_data(glob.glob("IMAGE_DB_RAW/*"))
 
-        # Get list of Folder
-        # print(glob.glob("IMAGE_DB_RAW/*"))
-        data = self._format_data(glob.glob("IMAGE_DB_RAW/*"))
-
-        self._color.printing("info", "[INFO] Create Folders of databases...")
-
+        # *======================*
+        # | Create Database Tree |
+        # *======================*
+        Colors.print_infos("[INFO] Create Folders of databases...\n")
         for name in data.name:
             if not os.path.isdir("Data/IMAGE_DB/" + name):
                 os.mkdir("Data/IMAGE_DB/" + name)
 
-        fd = FaceDetector(prob_thresh=float(0.5), nms_thres=float(0.1), lw=int(3),
-                          model="/home/zerocool/PycharmProjects/FacialRecognizionTFE/Test/FaceRecognizerV4.0/Data/Model/hr_res101.weight")
-
+        # *=======================*
+        # | Extract Faces Process |
+        # *=======================*
         cpt = 0
-        t1 = time.time()
+        t2 = time.time()
         for img_path in data.image:
-            # print(img_path)
-            self._color.printing("info", "[PROCESSING] Extract Faces {}/{}".format(cpt + 1, len(data.image)))
-            fd.ExtractFace(cv2.imread(img_path), "Data/IMAGE_DB/" + str(data.name[cpt]) + "/result_" + str(cpt))
-            cpt += 1
+            t1 = time.time()
 
-        self._color.printing("info", "[INFO] Remove file in IMG_DB_RAW...")
+            Colors.print_infos("[PROCESSING] Try to Detect a Person...")
+
+            # *===================*
+            # | Performed Process |
+            # *===================*
+            yolo_result = obj.run(img_path)
+
+            if re.match('person', yolo_result):
+                Colors.print_sucess("[PROCESSING] Person Detected !")
+                Colors.print_infos("[PROCESSING] Extract Faces Processing...")
+
+                # print(img_path)
+                Colors.print_infos("[PROCESSING] Extract Faces {}/{}".format(cpt + 1, len(data.image)))
+                fd.ExtractFace(cv2.imread(img_path), "Data/IMAGE_DB/" + str(data.name[cpt]) + "/result_" + str(cpt))
+            else:
+                Colors.print_error("[PROCESSING] No Face Detected !")
+            cpt += 1
+            del t1
+
+        Colors.print_infos("[INFO] Remove file in IMG_DB_RAW...")
         os.system("rm -rfv IMAGE_DB_RAW/*")
 
-        self._color.printing("success", "[SUCCESS] Extraction Completed in " + str(round(time.time()-t1, 4)) + " s\n")
+        Colors.print_sucess("\n[SUCCESS] Extraction Completed in " + str(round(time.time()-t2, 4)) + " s\n")
 
         # Cleanning RAM
         del data
         del fd
         del cpt
-        del t1
+        del t2
 
-        # Saving Images
-        self._saving()
-
-    # ===========================================================================
-    #         Create the Data Frame with Panda
-    # ===========================================================================
-    """
-    @:parameter train_path = Path from glog (UNIX LIKE)
-    """
-    def _format_data(self, train_paths):
-        data = pd.DataFrame(columns=['image', 'label', 'name'])
-
-        for i, train_path in tqdm(enumerate(train_paths)):
-            name = train_path.split("/")[-1]
-            images = glob.glob(train_path + "/*")
-            for image in images:
-                data.loc[len(data)] = [image, i, name]
-
-            del name
-            del images
-
-        # print(data)
-        return data
-
-    def _saving(self):
-        # Get list of Folder
-        self._serializer.saving_data(self._format_data(glob.glob("Data/IMAGE_DB/*")))
-
-        # print(data)
-        # self._serializer.saving_faces(self._faces)
+        # Saving Data
+        Serializer.saving_data(Serializer.format_data(glob.glob("Data/IMAGE_DB/*")), pickle_data)
