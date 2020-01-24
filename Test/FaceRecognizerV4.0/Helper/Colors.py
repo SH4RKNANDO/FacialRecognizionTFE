@@ -1,3 +1,22 @@
+# !/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# *===========================================================================*
+# |                       Infos Developers                                    |
+# *===========================================================================*
+__author__ = "Jordan BERTIEAUX"
+__copyright__ = "Copyright 2020, Facial Recognition"
+__credits__ = ["Jordan BERTIEAUX"]
+__license__ = "GPL"
+__version__ = "1.0"
+__maintainer__ = "Jordan BERTIEAUX"
+__email__ = "jordan.bertieaux@std.heh.be"
+__status__ = "Production"
+
+
+# *===========================================================================*
+# |                    Definition of Class Colors                             |
+# *===========================================================================*
 class Colors:
     # def __init__(self):
     # self._HEADER = '\033[95m'
@@ -8,20 +27,6 @@ class Colors:
     # self._ENDC = '\033[0m'
     # self._BOLD = '\033[1m'
     # self._UNDERLINE = '\033[4m'
-
-    """
-    @:parameter type = type of message
-    @:parameter message = message
-    """
-    def printing(self, type, message):
-        if type == "error":
-            print('\033[91m' + message + '\033[0m')
-
-        elif type == "info":
-            print('\033[94m' + message + '\033[0m')
-
-        elif type == "success":
-            print('\033[92m' + message + '\033[0m')
 
     @staticmethod
     def print_infos(message):

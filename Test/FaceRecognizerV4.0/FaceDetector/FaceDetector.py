@@ -43,6 +43,8 @@ class FaceDetector:
 
     # *=========================*
     # |  Extract Faces Process  |
+    # *=========================*
+
     # *======tiny_face===================*
     def ExtractFace(self, frame, savepath):
         with tf.Graph().as_default():
