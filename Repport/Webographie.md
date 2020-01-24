@@ -42,3 +42,9 @@ https://www.lemondeinformatique.fr/actualites/lire-l-approche-devsecops-a-l-honn
 ## 21 Décembre
 
 https://docs.python-guide.org/dev/virtualenvs/
+
+## GPU 
+https://communities.vmware.com/thread/605716
+https://tutorialforlinux.com/2019/07/13/how-to-install-cuda-10-on-debian-buster-10-64-bit-step-by-step/3/
+https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&target_distro=Ubuntu&target_version=1804&target_type=runfilelocal
+https://blogs.vmware.com/apps/2018/09/using-gpus-with-virtual-machines-on-vsphere-part-2-vmdirectpath-i-o.html
