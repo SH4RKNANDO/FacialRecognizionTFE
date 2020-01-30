@@ -13,35 +13,30 @@ from scipy.spatial import distance
 from tqdm import tqdm
 
 from FaceDetector import tiny_face_model
-from Helper import PATH, Serializer
+from Helper.Serializer import Serializer
 from Helper.Colors import Colors
 from Recognizer.Model import create_model
 from Recognizer.align import AlignDlib
 
 
 class Recognizer:
-    def __init__(self):
-        self._path = PATH.PATH()
-        self._serializer = Serializer.Serializer()
-        self._data = self._serializer.loading_data()
-        self._faces = self._serializer.loading_faces()
+    def __init__(self, pickle_data, pickle_embs, tiny_model, openface_model, predicator_landmarks):
+        self.data = Serializer.loading_data(pickle_data)
+        self._pickles_embs = pickle_embs
         self._train_paths = glob.glob("Data/IMAGE_DB/*")
         self._nb_classes = len(self._train_paths)
         self._label_index = []
-        # print(type(self._faces))
-        # print(self._data)
-        # print(self._faces)
 
-        self._tinyFace_model = tiny_face_model.Model(
-            "/home/zerocool/PycharmProjects/FacialRecognizionTFE/Test/FaceRecognizerV4.0/Data/Model/hr_res101.weight")
-
+        self._tinyFace_model = tiny_face_model.Model(tiny_model)
         self._nn4_small2 = create_model()
-        # self._nn4_small2.summary()
-        Colors.print_infos("[LOADING] Load the model size of openface")
-        self._nn4_small2.load_weights(self._path.OPENFACE_NN4_SMALL2_V1_H5)
 
+        Colors.print_infos("[LOADING] Load the model size of openface")
         Colors.print_infos("[LOADING] Align the face Predicator 68 Face Landmarks")
-        self._alignment = AlignDlib(self._path.SHAPE_PREDICATOR_68_FACE_LANDMARKS)
+        # self._nn4_small2.summary()
+
+        self._nn4_small2.load_weights(openface_model)
+        self._alignment = AlignDlib(predicator_landmarks)
+
         Colors.print_sucess("[LOADING] Loading Model Completed\n")
 
     # *=================================================================*
@@ -53,7 +48,10 @@ class Recognizer:
         data = self._recognize(data[0], faces, fd_tiny, frame, refined_bboxes)
 
         # return [image_copy, temp_name]
-        return [data[0], data[1]]
+        if data is not None:
+            return [data[0], data[1]]
+        else:
+            return None
 
     # *=================================================================*
     # |                    Method Helpers                               |
@@ -78,10 +76,13 @@ class Recognizer:
         for filepath in filepaths:
             # print(filepath)
             img = cv2.imread(filepath)
-            aligned = self._align_face(img)
-            aligned = (aligned / 255.).astype(np.float32)
-            aligned = np.expand_dims(aligned, axis=0)
-            aligned_images.append(aligned)
+            if img is not None:
+                aligned = self._align_face(img)
+                aligned = (aligned / 255.).astype(np.float32)
+                aligned = np.expand_dims(aligned, axis=0)
+                aligned_images.append(aligned)
+            else:
+                Colors.print_error("[ERROR] File Not Found in ImageDatabases: " + filepath)
 
         return np.array(aligned_images)
 
@@ -99,10 +100,13 @@ class Recognizer:
         aligned_images = []
         for face in faces:
             # print(face.shape)
-            aligned = self._align_face(face)
-            aligned = (aligned / 255.).astype(np.float32)
-            aligned = np.expand_dims(aligned, axis=0)
-            aligned_images.append(aligned)
+            try:
+                aligned = self._align_face(face)
+                aligned = (aligned / 255.).astype(np.float32)
+                aligned = np.expand_dims(aligned, axis=0)
+                aligned_images.append(aligned)
+            except:
+                continue
 
         return aligned_images
 
@@ -120,10 +124,10 @@ class Recognizer:
 
     def _trainning(self):
         for i in tqdm(range(len(self._train_paths))):
-            self._label_index.append(np.asarray(self._data[self._data.label == i].index))
+            self._label_index.append(np.asarray(self.data[self.data.label == i].index))
 
-        train_embs = self._calc_embs(self._data.image)
-        np.save(self._path.PICKLE_EMBS, train_embs)
+        train_embs = self._calc_embs(self.data.image)
+        np.save(self._pickles_embs, train_embs)
         train_embs = np.concatenate(train_embs)
 
         return [train_embs]
@@ -158,13 +162,14 @@ class Recognizer:
         _, _, _ = plt.hist(match_distances, bins=100)
         _, _, _ = plt.hist(unmatch_distances, bins=100, fc=(1, 0, 0, 0.5))
         plt.title("match/unmatch distances")
+        plt.imsave('Result_Match.jpg')
         # plt.show()
 
     # =========================================
     # Analysing the Match / Unmatch Distance
     # =========================================
     def _recognize(self, train_embs, faces, fd_tiny, frame, refined_bboxes):
-        threshold = 0.8
+        threshold = 0.7
 
         try:
             test_embs = self._calc_emb_test(faces)
@@ -179,7 +184,8 @@ class Recognizer:
                          self._label_index[j]]))
                     # for k in label2idx[j]:
                     # print(distance.euclidean(test_embs[i].reshape(-1), train_embs[k].reshape(-1)))
-                if np.min(distances) > threshold:
+                dist = np.min(distances)
+                if dist > threshold:
                     people.append("inconnu")
                 else:
                     res = np.argsort(distances)[:1]
@@ -191,16 +197,19 @@ class Recognizer:
                 if re.match('inconnu', str(p)):
                     name = "inconnu"
                 else:
-                    name = self._data[(self._data['label'] == p[0])].name.iloc[0]
+                    name = self.data[(self.data['label'] == p[0])].name.iloc[0]
                 names.append(name)
                 title = title + name + " "
-
-            data = fd_tiny.SetName(frame, refined_bboxes, names)
-            image_copy = data[0]
-            temp_name = data[1]
-            image_copy = imutils.resize(image_copy, width=720)
-
-            cv2.destroyAllWindows()
+            try:
+                data = fd_tiny.SetName(frame, refined_bboxes, names)
+                image_copy = data[0]
+                temp_name = data[1]
+                image_copy = imutils.resize(image_copy, width=720)
+                cv2.destroyAllWindows()
+            except:
+                return None
             return [image_copy, temp_name]
+        except:
+            return None
         finally:
             pass

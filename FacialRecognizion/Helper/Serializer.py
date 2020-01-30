@@ -9,6 +9,7 @@ import pandas as pd
 from Helper.Colors import Colors
 from tqdm import tqdm
 import glob
+from os import path
 
 # *===========================================================================*
 # |                       Infos Developers                                    |
@@ -79,11 +80,15 @@ class Serializer:
     """
     @staticmethod
     def loading_data(pickle_data):
-        Colors.print_infos("[LOADING] Loading Data Serialised...")
-        # Load the serialised Data
-        data = pickle.loads(open(pickle_data, "rb").read())
-        Colors.print_sucess("[LOADING] Loading Data Completed\n")
-        return data
+        if path.isfile(pickle_data):
+            Colors.print_infos("[LOADING] Loading Data Serialised...")
+            # Load the serialised Data
+            data = pickle.loads(open(pickle_data, "rb").read())
+            Colors.print_sucess("[LOADING] Loading Data Completed\n")
+            return data
+        else:
+            Colors.print_error("[ERROR] File Not Found : " + str(pickle_data))
+            return None
 
     """
     @:parameter train_path = Path from glog (UNIX LIKE)
@@ -104,3 +109,35 @@ class Serializer:
 
         # print(data)
         return data
+
+    """
+    @:parameter obj = obj[]
+    @:parameter pickle_obj = file static.pickle
+    """
+    @staticmethod
+    def saving_static(obj, pickle_obj):
+        Colors.print_infos("\n[SAVING] Serializing Static object...")
+        f = open(pickle_obj, "wb")
+        f.write(pickle.dumps(obj))
+        f.close()
+        del f
+        Colors.print_sucess("[SUCCESS] Serializing Static object Completed...\n")
+
+
+    """
+    @:parameter pickle_obj = file static.pickle
+    @:return obj[]
+    """
+    @staticmethod
+    def loading_static(pickle_obj):
+        Colors.print_infos("[LOADING] Loading Static object...")
+        obj = []
+
+        # Load the serialised Data
+        data = pickle.loads(open(pickle_obj, "rb").read())
+        for d in data:
+            obj.append(d)
+        del data
+
+        Colors.print_sucess("[LOADING] Loading Static object Completed\n")
+        return obj

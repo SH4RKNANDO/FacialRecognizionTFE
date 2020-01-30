@@ -45,7 +45,7 @@ class FaceDetectorTiny:
     # *=========================*
     # |  Extract Faces Process  |
     # *=========================*
-    def detectFace(self, frame):
+    def detectFaceTiny(self, frame):
         with tf.Graph().as_default():
             x = tf.compat.v1.placeholder(tf.float32, [1, None, None, 3])
 
@@ -371,6 +371,8 @@ class FaceDetectorTiny:
 
                 if len(refined_bboxes) > 0:
                     self._overlay_bounding_boxes(raw_img, refined_bboxes, self._lw, savepath)
+
+                return len(refined_bboxes)
 
     # ============================== < TinyFace Helpers > =======================================
 
