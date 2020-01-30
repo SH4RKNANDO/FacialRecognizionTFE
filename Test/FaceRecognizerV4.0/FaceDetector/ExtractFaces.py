@@ -49,9 +49,7 @@ class ExtractFaces:
         cpt = 0
         t2 = time.time()
         for img_path in data.image:
-            t1 = time.time()
-
-            Colors.print_infos("[PROCESSING] Try to Detect a Person...")
+            Colors.print_infos("\n[PROCESSING] Try to Detect a Person...")
 
             # *===================*
             # | Performed Process |
@@ -60,15 +58,18 @@ class ExtractFaces:
 
             if re.match('person', yolo_result):
                 Colors.print_sucess("[PROCESSING] Person Detected !")
-                Colors.print_infos("[PROCESSING] Extract Faces Processing...")
+                Colors.print_infos("[PROCESSING] Running Extract Faces Processing...")
 
                 # print(img_path)
                 Colors.print_infos("[PROCESSING] Extract Faces {}/{}".format(cpt + 1, len(data.image)))
-                fd.ExtractFace(cv2.imread(img_path), "Data/IMAGE_DB/" + str(data.name[cpt]) + "/result_" + str(cpt))
+                t1 = time.time()
+                result = fd.ExtractFace(cv2.imread(img_path), "Data/IMAGE_DB/" + str(data.name[cpt]) + "/result_" + str(cpt))
+                Colors.print_infos("[PROCESSING] Faces Detected : {} in {} s".format(result, time.time() - t1))
+                del t1
+                del result
             else:
                 Colors.print_error("[PROCESSING] No Face Detected !")
             cpt += 1
-            del t1
 
         Colors.print_infos("[INFO] Remove file in IMG_DB_RAW...")
         os.system("rm -rfv IMAGE_DB_RAW/*")
@@ -81,5 +82,7 @@ class ExtractFaces:
         del cpt
         del t2
 
+        data = Serializer.format_data(glob.glob("Data/IMAGE_DB/*"))
+
         # Saving Data
-        Serializer.saving_data(Serializer.format_data(glob.glob("Data/IMAGE_DB/*")), pickle_data)
+        Serializer.saving_data(data, pickle_data)
