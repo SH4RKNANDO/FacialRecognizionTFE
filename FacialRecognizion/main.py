@@ -25,7 +25,7 @@ import cv2
 import dlib
 import numpy as np
 import threading
-from configparser import ConfigParser
+from configparser import ConfigParser, ExtendedInterpolation
 from os import path
 from imutils import paths
 from FaceDetector.ExtractFaces import ExtractFaces
@@ -102,7 +102,7 @@ def _getting_config():
     # |  Read the ini config file   |
     # *=============================*
     Colors.print_infos("[INFOS] Reading config detector.ini...")
-    config = ConfigParser()
+    config = ConfigParser(interpolation=ExtendedInterpolation())
     config.read(config_path)
 
     # *=============================*
