@@ -87,4 +87,8 @@ class TrainModel:
             self.color.printing("error", "File Not Found : " + self.path.PICKLE_EMBEDDED)
             check = False
 
+        if len(os.listdir(self.path.IMAGE_DB)) <= 0:
+            self.color.printing("error", "No Image into the DB Folder : " + self.path.IMAGE_DB )
+            check = False
+
         return check
