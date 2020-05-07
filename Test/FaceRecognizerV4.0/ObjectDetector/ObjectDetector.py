@@ -35,10 +35,10 @@ class ObjectDetector(threading.Thread):
         self._show_percent = showPercent
         self._yolo_override_ZM = override_zm
         self.LABELS, self.COLORS, self.NET = data_loaded
+        self._lock = lock
         # determine only the *output* layer names that we need from YOLO
         self._ln = self.NET.getLayerNames()
         self._ln = [self._ln[i[0] - 1] for i in self.NET.getUnconnectedOutLayers()]
-        self._lock = lock
         # Observer Pattern
         self._objectDetector = Observable()
         self._objectDetector.register(main_observer)
@@ -48,7 +48,7 @@ class ObjectDetector(threading.Thread):
     # |   Running   Threading    |
     # *==========================*
     def run(self):
-        # print("[INFO] Try to Detect Now...")
+        self.wait_lock()
         self._detector()
 
     # ===========================================================================
@@ -60,7 +60,8 @@ class ObjectDetector(threading.Thread):
     def wait_lock(self):
         if self._lock.locked():
             while self._lock.locked() is True:
-                Colors.print_infos("[INFOS] Waiting unlocked thread...")
+                time.sleep(0.1)
+                # Colors.print_infos("[INFOS] Waiting unlocked thread...")
 
     # *==========================*
     # |   Detector Algorithm     |
@@ -69,11 +70,9 @@ class ObjectDetector(threading.Thread):
         objImg = cv2.imread(self.IMG)
         (H, W) = objImg.shape[:2]
 
-        self.wait_lock()
-        self._lock.acquire()
-
         # Construct the Matrice 4D from Image
         self.NET.setInput(cv2.dnn.blobFromImage(objImg, 1/255.0, (416, 416), swapRB=True, crop=False))
+        self._lock.acquire()
         layerOutputs = self.NET.forward(self._ln)
         self._lock.release()
 

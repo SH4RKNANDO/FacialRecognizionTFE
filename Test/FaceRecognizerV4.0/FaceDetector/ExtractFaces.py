@@ -20,7 +20,7 @@ import glob
 import cv2
 import time
 import os
-import re
+from imutils import paths
 
 
 # ===========================================================================
@@ -43,27 +43,31 @@ class ExtractFaces:
             if not os.path.isdir("Data/IMAGE_DB/" + name):
                 os.mkdir("Data/IMAGE_DB/" + name)
 
+        # *===================*
+        # | Performed Process |
+        # *===================*
+        obj.list_img = list(paths.list_images('IMAGE_DB_RAW'))
+        obj.override_zm = False
+        yolo_result = obj.run()
+        obj.override_zm = True
+
         # *=======================*
         # | Extract Faces Process |
         # *=======================*
         cpt = 0
         t2 = time.time()
-        for img_path in data.image:
+        for img_path in yolo_result.Images:
             Colors.print_infos("\n[PROCESSING] Try to Detect a Person...")
 
-            # *===================*
-            # | Performed Process |
-            # *===================*
-            yolo_result = obj.run(img_path)
-
-            if re.match('person', yolo_result):
-                Colors.print_sucess("[PROCESSING] Person Detected !")
-                Colors.print_infos("[PROCESSING] Running Extract Faces Processing...")
+            if "person" in yolo_result.Result[cpt]:
+                Colors.print_infos("[PROCESSING] Person(s) Found(s) !"
+                                   "[PROCESSING] Running Extract Faces Processing...")
 
                 # print(img_path)
-                Colors.print_infos("[PROCESSING] Extract Faces {}/{}".format(cpt + 1, len(data.image)))
+                Colors.print_infos("[PROCESSING] Extract Faces {}/{}".format(cpt + 1, len(yolo_result.Images)))
                 t1 = time.time()
-                result = fd.ExtractFace(cv2.imread(img_path), "Data/IMAGE_DB/" + str(data.name[cpt]) + "/result_" + str(cpt))
+                path = "Data/IMAGE_DB/" + str(data.name[cpt]) + "/result_" + str(cpt)
+                result = fd.ExtractFace(cv2.imread(img_path), path)
                 Colors.print_infos("[PROCESSING] Faces Detected : {} in {} s".format(result, time.time() - t1))
                 del t1
                 del result

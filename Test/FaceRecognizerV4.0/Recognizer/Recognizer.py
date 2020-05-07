@@ -1,7 +1,6 @@
 import glob
 import os
 import re
-
 import cv2
 import dlib
 import imutils
@@ -11,7 +10,6 @@ from imageio import imsave
 from imutils import paths
 from scipy.spatial import distance
 from tqdm import tqdm
-
 from FaceDetector import tiny_face_model
 from Helper.Serializer import Serializer
 from Helper.Colors import Colors
@@ -99,7 +97,7 @@ class Recognizer:
     def _align_faces(self, faces):
         aligned_images = []
         for face in faces:
-            # print(face.shape)
+            # print(face.shape)loading_data
             try:
                 aligned = self._align_face(face)
                 aligned = (aligned / 255.).astype(np.float32)
@@ -127,6 +125,7 @@ class Recognizer:
             self._label_index.append(np.asarray(self.data[self.data.label == i].index))
 
         train_embs = self._calc_embs(self.data.image)
+
         np.save(self._pickles_embs, train_embs)
         train_embs = np.concatenate(train_embs)
 
@@ -162,14 +161,14 @@ class Recognizer:
         _, _, _ = plt.hist(match_distances, bins=100)
         _, _, _ = plt.hist(unmatch_distances, bins=100, fc=(1, 0, 0, 0.5))
         plt.title("match/unmatch distances")
-        plt.imsave('Result_Match.jpg')
+        # plt.imsave('Result_Match.jpg')
         # plt.show()
 
     # =========================================
     # Analysing the Match / Unmatch Distance
     # =========================================
     def _recognize(self, train_embs, faces, fd_tiny, frame, refined_bboxes):
-        threshold = 0.7
+        threshold = 0.6
 
         try:
             test_embs = self._calc_emb_test(faces)
@@ -184,6 +183,7 @@ class Recognizer:
                          self._label_index[j]]))
                     # for k in label2idx[j]:
                     # print(distance.euclidean(test_embs[i].reshape(-1), train_embs[k].reshape(-1)))
+                    # Check if dist > 0.7
                 dist = np.min(distances)
                 if dist > threshold:
                     people.append("inconnu")
@@ -213,3 +213,4 @@ class Recognizer:
             return None
         finally:
             pass
+

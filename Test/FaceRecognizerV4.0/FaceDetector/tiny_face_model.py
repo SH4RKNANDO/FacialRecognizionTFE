@@ -150,3 +150,4 @@ class Model:
 
         score_final = score4 + score_res3c
         return score_final
+

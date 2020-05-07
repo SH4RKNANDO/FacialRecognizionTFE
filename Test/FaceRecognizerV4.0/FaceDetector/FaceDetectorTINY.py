@@ -7,15 +7,17 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-from scipy.special import expit
-from FaceDetector import tiny_face_model
-from FaceDetector import util
+
 import pickle
 import time
+
 import cv2
 import numpy as np
 import tensorflow as tf
+from scipy.special import expit
 
+from FaceDetector import tiny_face_model
+from FaceDetector import util
 
 # ===========================================================================
 #           Infos developer
@@ -39,135 +41,117 @@ class FaceDetectorTiny:
         self._prob_thresh = float(prob_thresh)
         self._nms_tresh = float(nms_thres)
         self._lw = int(lw)
-        self._model_path = model
-        self._model = tiny_face_model.Model(model)
+        self.model_path = model
+        self.model = tiny_face_model.Model(model)
 
     # *=========================*
     # |  Extract Faces Process  |
     # *=========================*
-    def detectFaceTiny(self, frame):
-        with tf.Graph().as_default():
-            x = tf.compat.v1.placeholder(tf.float32, [1, None, None, 3])
+    def detectFaceTiny(self, frame, score_final, average_image, clusters_w, clusters_h, normal_idx, clusters, x, sess):
+        raw_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        raw_img_f = raw_img.astype(np.float32)
 
-            # Create the tiny face model which weights are loaded from a pretrained model.
-            score_final = self._model.tiny_face(x)
+        def _calc_scales():
+            raw_h, raw_w = raw_img.shape[0], raw_img.shape[1]
+            min_scale = min(np.floor(np.log2(np.max(clusters_w[normal_idx] / raw_w))),
+                            np.floor(np.log2(np.max(clusters_h[normal_idx] / raw_h))))
+            max_scale = min(1.0, -np.log2(max(raw_h, raw_w) / self._MAX_INPUT_DIM))
+            scales_down = np.arange(min_scale, 0, 1.)
+            scales_up = np.arange(0.5, max_scale, 0.5)
+            scales_pow = np.hstack((scales_down, scales_up))
+            scales = np.power(2.0, scales_pow)
 
-            # Load an average image and clusters(reference boxes of templates).
-            with open(self._model_path, "rb") as f:
-                _, mat_params_dict = pickle.load(f)
+            return scales
 
-            average_image = self._model.get_data_by_key("average_image")
-            clusters = self._model.get_data_by_key("clusters")
-            clusters_h = clusters[:, 3] - clusters[:, 1] + 1
-            clusters_w = clusters[:, 2] - clusters[:, 0] + 1
-            normal_idx = np.where(clusters[:, 4] == 1)
+        scales = _calc_scales()
 
-            with tf.compat.v1.Session() as sess:
-                sess.run(tf.compat.v1.global_variables_initializer())
-                raw_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                raw_img_f = raw_img.astype(np.float32)
+        # initialize output
+        bboxes = np.empty(shape=(0, 5))
 
-                def _calc_scales():
-                    raw_h, raw_w = raw_img.shape[0], raw_img.shape[1]
-                    min_scale = min(np.floor(np.log2(np.max(clusters_w[normal_idx] / raw_w))),
-                                    np.floor(np.log2(np.max(clusters_h[normal_idx] / raw_h))))
-                    max_scale = min(1.0, -np.log2(max(raw_h, raw_w) / self._MAX_INPUT_DIM))
-                    scales_down = np.arange(min_scale, 0, 1.)
-                    scales_up = np.arange(0.5, max_scale, 0.5)
-                    scales_pow = np.hstack((scales_down, scales_up))
-                    scales = np.power(2.0, scales_pow)
+        start = time.time()
+        # process input at different scales
+        for s in scales:
+            print("Processing at scale {:.4f}".format(s))
+            img = cv2.resize(raw_img_f, (0, 0), fx=s, fy=s, interpolation=cv2.INTER_LINEAR)
+            img = img - average_image
+            img = img[np.newaxis, :]
 
-                    return scales
+            # we don't run every template on every scale ids of templates to ignore
+            tids = list(range(4, 12)) + ([] if s <= 1.0 else list(range(18, 25)))
+            ignoredTids = list(set(range(0, clusters.shape[0])) - set(tids))
 
-                scales = _calc_scales()
+            # run through the net
+            score_final_tf = sess.run(score_final, feed_dict={x: img})
 
-                # initialize output
-                bboxes = np.empty(shape=(0, 5))
+            # collect scores
+            score_cls_tf, score_reg_tf = score_final_tf[:, :, :, :25], score_final_tf[:, :, :, 25:125]
+            prob_cls_tf = expit(score_cls_tf)
+            prob_cls_tf[0, :, :, ignoredTids] = 0.0
 
-                start = time.time()
-                # process input at different scales
-                for s in scales:
-                    print("Processing at scale {:.4f}".format(s))
-                    img = cv2.resize(raw_img_f, (0, 0), fx=s, fy=s, interpolation=cv2.INTER_LINEAR)
-                    img = img - average_image
-                    img = img[np.newaxis, :]
+            def _calc_bounding_boxes():
+                # threshold for detection
+                _, fy, fx, fc = np.where(prob_cls_tf > self._prob_thresh)
 
-                    # we don't run every template on every scale ids of templates to ignore
-                    tids = list(range(4, 12)) + ([] if s <= 1.0 else list(range(18, 25)))
-                    ignoredTids = list(set(range(0, clusters.shape[0])) - set(tids))
+                # interpret heatmap into bounding boxes
+                cy = fy * 8 - 1
+                cx = fx * 8 - 1
+                ch = clusters[fc, 3] - clusters[fc, 1] + 1
+                cw = clusters[fc, 2] - clusters[fc, 0] + 1
 
-                    # run through the net
-                    score_final_tf = sess.run(score_final, feed_dict={x: img})
+                # extract bounding box refinement
+                Nt = clusters.shape[0]
+                tx = score_reg_tf[0, :, :, 0:Nt]
+                ty = score_reg_tf[0, :, :, Nt:2 * Nt]
+                tw = score_reg_tf[0, :, :, 2 * Nt:3 * Nt]
+                th = score_reg_tf[0, :, :, 3 * Nt:4 * Nt]
 
-                    # collect scores
-                    score_cls_tf, score_reg_tf = score_final_tf[:, :, :, :25], score_final_tf[:, :, :, 25:125]
-                    prob_cls_tf = expit(score_cls_tf)
-                    prob_cls_tf[0, :, :, ignoredTids] = 0.0
+                # refine bounding boxes
+                dcx = cw * tx[fy, fx, fc]
+                dcy = ch * ty[fy, fx, fc]
+                rcx = cx + dcx
+                rcy = cy + dcy
+                rcw = cw * np.exp(tw[fy, fx, fc])
+                rch = ch * np.exp(th[fy, fx, fc])
 
-                    def _calc_bounding_boxes():
-                        # threshold for detection
-                        _, fy, fx, fc = np.where(prob_cls_tf > self._prob_thresh)
+                scores = score_cls_tf[0, fy, fx, fc]
+                tmp_bboxes = np.vstack((rcx - rcw / 2, rcy - rch / 2, rcx + rcw / 2, rcy + rch / 2))
+                tmp_bboxes = np.vstack((tmp_bboxes / s, scores))
+                tmp_bboxes = tmp_bboxes.transpose()
 
-                        # interpret heatmap into bounding boxes
-                        cy = fy * 8 - 1
-                        cx = fx * 8 - 1
-                        ch = clusters[fc, 3] - clusters[fc, 1] + 1
-                        cw = clusters[fc, 2] - clusters[fc, 0] + 1
+                return tmp_bboxes
 
-                        # extract bounding box refinement
-                        Nt = clusters.shape[0]
-                        tx = score_reg_tf[0, :, :, 0:Nt]
-                        ty = score_reg_tf[0, :, :, Nt:2 * Nt]
-                        tw = score_reg_tf[0, :, :, 2 * Nt:3 * Nt]
-                        th = score_reg_tf[0, :, :, 3 * Nt:4 * Nt]
+            tmp_bboxes = _calc_bounding_boxes()
+            bboxes = np.vstack((bboxes, tmp_bboxes))  # <class 'tuple'>: (5265, 5)
 
-                        # refine bounding boxes
-                        dcx = cw * tx[fy, fx, fc]
-                        dcy = ch * ty[fy, fx, fc]
-                        rcx = cx + dcx
-                        rcy = cy + dcy
-                        rcw = cw * np.exp(tw[fy, fx, fc])
-                        rch = ch * np.exp(th[fy, fx, fc])
+        print("time {:.2f} secs ".format(time.time() - start))
 
-                        scores = score_cls_tf[0, fy, fx, fc]
-                        tmp_bboxes = np.vstack((rcx - rcw / 2, rcy - rch / 2, rcx + rcw / 2, rcy + rch / 2))
-                        tmp_bboxes = np.vstack((tmp_bboxes / s, scores))
-                        tmp_bboxes = tmp_bboxes.transpose()
+        # refind_idx = util.nms(bboxes, nms_thresh)
+        refind_idx = tf.image.non_max_suppression(tf.convert_to_tensor(value=bboxes[:, :4], dtype=tf.float32),
+                                                  tf.convert_to_tensor(value=bboxes[:, 4], dtype=tf.float32),
+                                                  max_output_size=bboxes.shape[0],
+                                                  iou_threshold=self._nms_tresh)
+        refind_idx = sess.run(refind_idx)
+        refined_bboxes = bboxes[refind_idx]
 
-                        return tmp_bboxes
+        faces = []
+        if len(refined_bboxes) > 0:
+            faces = self._GetFaces(raw_img, refined_bboxes, self._lw)
 
-                    tmp_bboxes = _calc_bounding_boxes()
-                    bboxes = np.vstack((bboxes, tmp_bboxes))  # <class 'tuple'>: (5265, 5)
-
-                print("time {:.2f} secs ".format(time.time() - start))
-
-                # refind_idx = util.nms(bboxes, nms_thresh)
-                refind_idx = tf.image.non_max_suppression(tf.convert_to_tensor(value=bboxes[:, :4], dtype=tf.float32),
-                                                          tf.convert_to_tensor(value=bboxes[:, 4], dtype=tf.float32),
-                                                          max_output_size=bboxes.shape[0],
-                                                          iou_threshold=self._nms_tresh)
-                refind_idx = sess.run(refind_idx)
-                refined_bboxes = bboxes[refind_idx]
-
-                faces = []
-                if len(refined_bboxes) > 0:
-                    faces = self._GetFaces(raw_img, refined_bboxes, self._lw)
-
-                return [faces, refined_bboxes]
+        return [faces, refined_bboxes]
 
     def DetectFace_Name(self, frame, names):
         with tf.Graph().as_default():
             x = tf.compat.v1.placeholder(tf.float32, [1, None, None, 3])
 
             # Create the tiny face model which weights are loaded from a pretrained model.
-            score_final = self._model.tiny_face(x)
+            score_final = self.model.tiny_face(x)
 
             # Load an average image and clusters(reference boxes of templates).
-            with open(self._model_path, "rb") as f:
+            with open(self.model_path, "rb") as f:
                 _, mat_params_dict = pickle.load(f)
 
-            average_image = self._model.get_data_by_key("average_image")
-            clusters = self._model.get_data_by_key("clusters")
+            average_image = self.model.get_data_by_key("average_image")
+            clusters = self.model.get_data_by_key("clusters")
             clusters_h = clusters[:, 3] - clusters[:, 1] + 1
             clusters_w = clusters[:, 2] - clusters[:, 0] + 1
             normal_idx = np.where(clusters[:, 4] == 1)
@@ -270,14 +254,14 @@ class FaceDetectorTiny:
             x = tf.compat.v1.placeholder(tf.float32, [1, None, None, 3])
 
             # Create the tiny face model which weights are loaded from a pretrained model.
-            score_final = self._model.tiny_face(x)
+            score_final = self.model.tiny_face(x)
 
             # Load an average image and clusters(reference boxes of templates).
-            with open(self._model_path, "rb") as f:
+            with open(self.model_path, "rb") as f:
                 _, mat_params_dict = pickle.load(f)
 
-            average_image = self._model.get_data_by_key("average_image")
-            clusters = self._model.get_data_by_key("clusters")
+            average_image = self.model.get_data_by_key("average_image")
+            clusters = self.model.get_data_by_key("clusters")
             clusters_h = clusters[:, 3] - clusters[:, 1] + 1
             clusters_w = clusters[:, 2] - clusters[:, 0] + 1
             normal_idx = np.where(clusters[:, 4] == 1)
@@ -423,7 +407,8 @@ class FaceDetectorTiny:
 
             _r = [int(x) for x in r[:4]]
             cv2.rectangle(raw_img, (_r[0], _r[1]), (_r[2], _r[3]), (255, 0, 0), _lw)
-            cv2.putText(raw_img, names[cpt], (_r[0], _r[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(raw_img, names[cpt], (_r[0], _r[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2,
+                        cv2.LINE_AA)
 
             temp_name = names[cpt]
             cpt += 1
@@ -471,4 +456,3 @@ class FaceDetectorTiny:
             del _r
 
         del cpt
-
